@@ -1,0 +1,115 @@
+<head>
+    <link rel="stylesheet" type="text/css" href="css/site.css" />
+    <script src="js/vue.js"></script>
+    <script>
+    </script>
+    <title>Todo list</title>
+</head>
+<body>
+<h1>
+    Todo List
+</h1>
+<hr />
+<div id="todo-app">
+    <table style="width:75%; margin: auto">
+        <thead>
+            <tr>
+                <th style="width: 2em">编号</th>
+                <th style="width: auto">内容</th>
+                <th style="width: 15em">截止日期</th>
+                <th style="width: 8em">操作</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr v-for="item, index in todoList" v-bind:key="index">
+                <td>{{index}}</td><td>{{item.title}}</td><td>{{item.date}}</td><td><span><a @click="edi(index)" href="#">修改</a> | <a @click="del(index)" href="#">删除</a></span></td>
+            </tr>
+        </tbody>
+    </table>
+    <hr />
+    <div style="width:75%; margin: auto" v-show="!isEditing">
+        <label for="title">代办事项</label><input name="title" id="title" type="text" v-model="ediText" class="textbox" placehorder="输入代办事项" />
+        <label for="date">截止日期</label><input name="date" id="date" type="datetime-local" v-model="ediDate" class="textbox" />
+        <br />
+        <button @click="newtodo()" class="btn-cfm">提交</button>
+    </div>
+    <div style="width:75%; margin: auto" v-show="isEditing">
+        <input type="text" style="display: none" v-model="modid"/>
+        <label for="mtitle">代办事项</label><input name="mtitle" id="ediT" type="text" v-model="modText" class="textbox" placehorder="输入代办事项" />
+        <label for="mdate">截止日期</label><input name="mdate" id="ediD" type="datetime-local" v-model="modDate" class="textbox" />
+        <br />
+        <button @click="update(modid)" class="btn-cfm">更新</button>
+        <button @click="canc()" class="btn">取消</button>
+    </div>
+</div>
+<script>
+    
+    tmp = localStorage['todoSave']
+    if(tmp == undefined) todos = [{title: "这是一个可爱的测试用例", date: "1970-01-01T00:00"}]
+    else todos = JSON.parse(tmp)
+
+    var vapp = new Vue({
+            el: "#todo-app",
+            data: {
+                todoList: todos,
+                ediText : null,
+                ediDate : null,
+                modText : null,
+                modDate : null,
+                isEditing: false,
+                modid: -1
+            },
+            methods: {
+                edi: function (id) {
+                    this.isEditing = true;
+                    this.modid = id;
+                    this.modText = this.todoList[id].title;
+                    this.modDate = this.todoList[id].date;
+                    return;
+                },
+                del: function (id) {
+                    // this.todoList.forEach(function(ele, idx, arr) {
+                    //     if(idx == id) {
+                            this.todoList.splice(id, 1);
+                        //     return ;
+                        // }
+                    // })
+                    localStorage['todoSave'] = JSON.stringify(todos)
+                },
+                update: function(id) {//TODO: sync with srvr
+                    if(id == -1) {
+                        canc();
+                        return ;
+                    }
+                    this.todoList[id] = {
+                        title: this.modText,
+                        date: this.modDate
+                    }
+                    this.modText = this.modDate = null;
+                    this.canc()
+
+                    localStorage['todoSave'] = JSON.stringify(todos)
+                },
+                newtodo: function () {//TODO: sync with srvr
+                    if(this.ediText == null || this.ediDate == null) {
+                        alert("请输入完整且正确的信息");
+                        return ;
+                    }
+                    //var idx = this.todoList.length;
+                    this.todoList.push({
+                        title: this.ediText,
+                        date: this.ediDate
+                    })
+                    this.ediText = this.ediDate = null;
+
+                    localStorage['todoSave'] = JSON.stringify(todos)
+                },
+                canc: function () {
+                    this.isEditing = false;
+                }
+            }
+        })
+    
+
+</script>
+</body>
